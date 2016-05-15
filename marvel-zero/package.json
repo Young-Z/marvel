@@ -1,0 +1,42 @@
+{
+  "name": "marvel-zero",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "pretest": "gulp eslint",
+    "test": "gulp test",
+    "gulp": "gulp"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:Young-Z/marvel.git"
+  },
+  "author": "Young Zhang",
+  "license": "MIT",
+  "dependencies": {
+    "bower": "^1.4.1",
+    "express": "^4.13.3"
+  },
+  "devDependencies": {
+    "browser-sync": "^2.8.2",
+    "gulp": "^3.9.0",
+    "gulp-autoprefixer": "^2.3.1",
+    "gulp-eslint": "^1.0.0",
+    "gulp-if": "^1.2.5",
+    "gulp-imagemin": "^2.3.0",
+    "gulp-nodemon": "^2.0.3",
+    "gulp-plumber": "^1.1.0",
+    "gulp-sass": "^2.0.4",
+    "gulp-scss-lint": "^0.3.9",
+    "gulp-sourcemaps": "^1.5.2",
+    "gulp-uglify": "^1.2.0",
+    "gulp-util": "^3.0.7",
+    "node-sass-import-once": "^1.2.0"
+  },
+  "engines": {
+    "node": "^4.1",
+    "npm": "^2.14"
+  }
+}
