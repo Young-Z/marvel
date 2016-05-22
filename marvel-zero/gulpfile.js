@@ -28,11 +28,8 @@ var gulp = require('gulp'),
 //////////////////////////////
 var dirs = {
     'js': {
-        'lint': [
-            'index.js',
-            'src/**/*.js',
-            '!src/**/*.min.js',
-            '!src/js/3rd_party/*.js'
+        'watch': [
+            'src/js/*.js',
         ],
         'browserify': [
             'src/js/app.js'
@@ -44,13 +41,6 @@ var dirs = {
             'index.js',
             'api/**/*.js',
             'util/**/*.js'
-        ]
-    },
-    'bower': {
-        'source': 'bower_components/',
-        'dist': 'js/3rd_party/',
-        'js': [
-            '/angular/angular.js',
         ]
     },
     'sass': 'src/sass/**/*.scss',
@@ -73,19 +63,6 @@ var onError = function (err) {
 browserSync = browserSync.create();
 
 //////////////////////////////
-// JavaScript Lint Tasks
-//////////////////////////////
-gulp.task('eslint', function () {
-    gulp.src(dirs.js.lint)
-        .pipe(plumber({
-            errorHandler: onError
-        }))
-        .pipe(eslint())
-        .pipe(eslint.format())
-        .pipe(gulpif(isCI, eslint.failOnError()));
-});
-
-//////////////////////////////
 // browserify Tasks
 //////////////////////////////
 gulp.task('browserify', function () {
@@ -102,24 +79,8 @@ gulp.task('browserify', function () {
         .pipe(browserSync.stream());
 });
 
-gulp.task('eslint:watch', function () {
-    gulp.watch(dirs.js.lint, ['eslint']);
-});
-
-gulp.task('uglify:watch', function () {
-    gulp.watch(dirs.js.uglify, ['uglify']);
-});
-
-//////////////////////////////
-// Bower Tasks
-//////////////////////////////
-gulp.task('bower', function () {
-    var jsPath = dirs.bower.js.map(function (path) {
-        return dirs.bower.source + path;
-    })
-    gulp.src(jsPath)
-        .pipe(gulp.dest(dirs.public + dirs.bower.dist))
-        .pipe(browserSync.stream());
+gulp.task('browserify:watch', function () {
+    gulp.watch(dirs.js.watch, ['browserify']);
 });
 
 //////////////////////////////
@@ -138,7 +99,7 @@ gulp.task('sass', function () {
             'importOnce': {
                 'index': true,
                 'css': true,
-                'bower': true
+                'bower': false
             }
         }))
         .pipe(autoprefixer())
@@ -223,7 +184,7 @@ gulp.task('selenium', function (cb) {
 //////////////////////////////
 // wdio test Task
 //////////////////////////////
-gulp.task('wdio', function () {
+gulp.task('wdio', ['selenium'], function () {
     return gulp.src('wdio.conf.js')
         .pipe(webdriver());
 });
@@ -231,10 +192,10 @@ gulp.task('wdio', function () {
 //////////////////////////////
 // Running Tasks
 //////////////////////////////
-gulp.task('build', ['bower', 'browserify', 'sass', 'images', 'html']);
+gulp.task('build', ['browserify', 'sass', 'images', 'html']);
 
-gulp.task('e2e', ['build', 'nodemon', 'selenium', 'wdio']);
+gulp.task('e2e', ['build', 'nodemon', 'wdio']);
 
-gulp.task('watch', ['eslint:watch', 'uglify:watch', 'sass:watch', 'images:watch', 'html:watch']);
+gulp.task('watch', ['browserify:watch', 'sass:watch', 'images:watch', 'html:watch']);
 
 gulp.task('default', ['build', 'browser-sync', 'watch']);
