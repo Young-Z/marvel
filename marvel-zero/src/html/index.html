@@ -1,9 +1,21 @@
-<html>
-    <head>
-    </head>
-    <body>
-        <div class="jumbotron">
-            <h1>Hello Wrold from Bootstrap!</h1>
-        </div>
-    </body>
+<html ng-app="app">
+
+<head>
+    <title>Hello!</title>
+</head>
+
+<body ng-controller="oneHeapNimCtrl as nim">
+    <h1>1-Heap Nim</h1>
+    <div>
+        <span class="coin" ng-repeat="coin in nim.coins" ng-click="nim.removeCoin(coin)" ng-style="coin.isRemoving && {'text-decoration': 'line-through'}" ng-if="!coin.isRemoved">Coin</span>
+    </div>
+    <div>
+        <button class="btn-confirm-removing" ng-click="nim.confirmRemoving()">confirm</button>
+        <button>switch</button>
+    </div>
+    <section class="scripts">
+        <script src="/js/app.js"></script>
+    </section>
+</body>
+
 </html>

@@ -10,13 +10,18 @@ var gulp = require('gulp'),
     sourcemaps = require('gulp-sourcemaps'),
     eslint = require('gulp-eslint'),
     uglify = require('gulp-uglify'),
+    browserify = require('gulp-browserify'),
+    babelify = require('babelify'),
+    rename = require('gulp-rename'),
     sass = require('gulp-sass'),
     importOnce = require('node-sass-import-once'),
     autoprefixer = require('gulp-autoprefixer'),
     scsslint = require('gulp-scss-lint'),
     imagemin = require('gulp-imagemin'),
     gulpif = require('gulp-if'),
-    browserSync = require('browser-sync');
+    browserSync = require('browser-sync'),
+    selenium = require('selenium-standalone'),
+    webdriver = require('gulp-webdriver');
 
 //////////////////////////////
 // Variables
@@ -26,11 +31,11 @@ var dirs = {
         'lint': [
             'index.js',
             'src/**/*.js',
-            '!src/**/*.min.js'
+            '!src/**/*.min.js',
+            '!src/js/3rd_party/*.js'
         ],
-        'uglify': [
-            'src/js/**/*.js',
-            '!src/js/**/*.min.js'
+        'browserify': [
+            'src/js/app.js'
         ]
     },
     'server': {
@@ -39,6 +44,13 @@ var dirs = {
             'index.js',
             'api/**/*.js',
             'util/**/*.js'
+        ]
+    },
+    'bower': {
+        'source': 'bower_components/',
+        'dist': 'js/3rd_party/',
+        'js': [
+            '/angular/angular.js',
         ]
     },
     'sass': 'src/sass/**/*.scss',
@@ -73,8 +85,14 @@ gulp.task('eslint', function () {
         .pipe(gulpif(isCI, eslint.failOnError()));
 });
 
-gulp.task('uglify', function () {
-    gulp.src(dirs.js.uglify)
+//////////////////////////////
+// browserify Tasks
+//////////////////////////////
+gulp.task('browserify', function () {
+    gulp.src(dirs.js.browserify)
+        .pipe(browserify({
+            transform: [babelify]
+        }))
         .pipe(gulpif(!isCI, sourcemaps.init()))
         .pipe(uglify({
             'mangle': isCI ? true : false
@@ -93,6 +111,18 @@ gulp.task('uglify:watch', function () {
 });
 
 //////////////////////////////
+// Bower Tasks
+//////////////////////////////
+gulp.task('bower', function () {
+    var jsPath = dirs.bower.js.map(function (path) {
+        return dirs.bower.source + path;
+    })
+    gulp.src(jsPath)
+        .pipe(gulp.dest(dirs.public + dirs.bower.dist))
+        .pipe(browserSync.stream());
+});
+
+//////////////////////////////
 // Sass Tasks
 //////////////////////////////
 gulp.task('sass', function () {
@@ -103,7 +133,7 @@ gulp.task('sass', function () {
         //}))
         .pipe(gulpif(!isCI, sourcemaps.init()))
         .pipe(sass({
-            'outputStyle': isCI ? 'compressed': 'expanded',
+            'outputStyle': isCI ? 'compressed' : 'expanded',
             'importer': importOnce,
             'importOnce': {
                 'index': true,
@@ -167,27 +197,44 @@ gulp.task('nodemon', function (cb) {
             cb();
         })
         .on('restart', function () {
-            // console.log('Restarted');
+            console.log('Restarted');
         });
 });
 
 //////////////////////////////
 // Browser Sync Task
 //////////////////////////////
-gulp.task('browser-sync', ['nodemon'], function () {
-
+gulp.task('browser-sync', ['nodemon'], function (cb) {
     browserSync.init({
-        'proxy': "localhost:7376"
+        'proxy': "localhost:17376"
+    }, cb);
+});
+
+
+//////////////////////////////
+// Selenium Task
+//////////////////////////////
+gulp.task('selenium', function (cb) {
+    selenium.install({ logger: console.log }, function () {
+        selenium.start(cb);
     });
+});
+
+//////////////////////////////
+// wdio test Task
+//////////////////////////////
+gulp.task('wdio', function () {
+    return gulp.src('wdio.conf.js')
+        .pipe(webdriver());
 });
 
 //////////////////////////////
 // Running Tasks
 //////////////////////////////
-gulp.task('build', ['uglify', 'sass', 'images', 'html']);
+gulp.task('build', ['bower', 'browserify', 'sass', 'images', 'html']);
 
-gulp.task('test', ['build']);
+gulp.task('e2e', ['build', 'nodemon', 'selenium', 'wdio']);
 
 gulp.task('watch', ['eslint:watch', 'uglify:watch', 'sass:watch', 'images:watch', 'html:watch']);
 
-gulp.task('default', ['browser-sync', 'build', 'watch']);
+gulp.task('default', ['build', 'browser-sync', 'watch']);
