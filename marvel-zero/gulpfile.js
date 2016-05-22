@@ -21,7 +21,7 @@ var gulp = require('gulp'),
     gulpif = require('gulp-if'),
     browserSync = require('browser-sync'),
     selenium = require('selenium-standalone'),
-    webdriver = require('gulp-webdriver');
+    protractor = require("gulp-protractor").protractor;
 
 //////////////////////////////
 // Variables
@@ -182,11 +182,13 @@ gulp.task('selenium', function (cb) {
 });
 
 //////////////////////////////
-// wdio test Task
+// protractor test Task
 //////////////////////////////
-gulp.task('wdio', ['selenium'], function () {
-    return gulp.src('wdio.conf.js')
-        .pipe(webdriver());
+gulp.task('protractor', ['selenium'], function () {
+    gulp.src(["./test/spec/*.spec.js"])
+    .pipe(protractor({
+        configFile: "protractor.conf.js"
+    }))
 });
 
 //////////////////////////////
@@ -194,7 +196,7 @@ gulp.task('wdio', ['selenium'], function () {
 //////////////////////////////
 gulp.task('build', ['browserify', 'sass', 'images', 'html']);
 
-gulp.task('e2e', ['build', 'nodemon', 'wdio']);
+gulp.task('e2e', ['build', 'nodemon', 'protractor']);
 
 gulp.task('watch', ['browserify:watch', 'sass:watch', 'images:watch', 'html:watch']);
 
